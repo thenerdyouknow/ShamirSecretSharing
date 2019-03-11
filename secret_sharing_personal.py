@@ -70,6 +70,7 @@ class ShamirSecret:
 		plaintext_secret = self.plaintext_conversion(reconstructed_int_secret)
 		return plaintext_secret
 
+
 threshold_shares = 3
 total_shares = 6
 plaintext_secret = input('Secret to be encoded :')
@@ -77,5 +78,4 @@ finding_shares = ShamirSecret(plaintext_secret,3,6)
 shares = finding_shares.compute_shares()
 print("The shares are",shares)
 recovered_secret = finding_shares.reconstructing_secret(shares[0:])
-
 print("The recovered message is",recovered_secret)
