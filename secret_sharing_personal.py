@@ -1,4 +1,5 @@
 import random
+import socket
 
 class ShamirSecret:
 	def __init__(self,secret,threshold,total_shares):
@@ -70,12 +71,25 @@ class ShamirSecret:
 		plaintext_secret = self.plaintext_conversion(reconstructed_int_secret)
 		return plaintext_secret
 
+class EverythingSocket:
+	def __init__(self,hosts,ports):
+		self.hosts = hosts
+		self.ports = ports
 
+	def send_all_shares(self,shares):
+		for i in range(0,len(shares)):
+			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+				s.connect((self.hosts[i%3], self.ports[i%3]))
+				s.sendall(','.join(map(str, shares[i])).encode())
+				print('Done sending share',i)
+			
+hosts = ['127.0.0.1','127.0.0.1','127.0.0.1']
+ports = [65432,65433,65434]
 threshold_shares = 3
 total_shares = 6
 plaintext_secret = input('Secret to be encoded :')
 finding_shares = ShamirSecret(plaintext_secret,3,6)
 shares = finding_shares.compute_shares()
-print("The shares are",shares)
+sockets = EverythingSocket(hosts,ports)
+sockets.send_all_shares(shares)
 recovered_secret = finding_shares.reconstructing_secret(shares[0:])
-print("The recovered message is",recovered_secret)
