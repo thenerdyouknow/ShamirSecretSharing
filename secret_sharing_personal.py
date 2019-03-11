@@ -27,10 +27,11 @@ class ShamirSecret:
 		return polynomial_list
 
 	def compute_shares(self):
-		self.converting_to_ascii()
-		share_polynomial = self.constructing_polynomial()
+		self.converting_to_ascii() #Making the secret an integer
+		print(self.secret)
+		share_polynomial = self.constructing_polynomial() #Finding coefficients for polynomial
 		all_shares = []
-		for i in range(1,self.total_shares+1):
+		for i in range(1,self.total_shares+1): #Constructing shares by substituting value of x into polynomial created
 			exponent = self.threshold - 1
 			temporary_share = 0
 			for each_coeff in share_polynomial:
@@ -47,21 +48,36 @@ class ShamirSecret:
 			inner_sum = 1
 			for m in range(0,k):
 				if(m != j):
-					inner_sum *= (x_values[m])/(x_values[m]-x_values[j])
+					inner_sum *= (x_values[m])//(x_values[m]-x_values[j])
 			outer_sum += fx_for_j * inner_sum
-		return int(outer_sum)
+			
+		return outer_sum
+
+	def plaintext_conversion(self,int_secret):
+		actual_message = ''
+		if(self.first_zero_bit): #Restoring size to multiple of 3 to cut and get values easily
+			string_secret = '0' + str(int_secret)
+		else:
+			string_secret = str(int_secret)
+		for i in range(0,len(string_secret),3): 
+			actual_message += chr(int(string_secret[i:i+3].lstrip())) #Stripping leading 0s, converting number to it, then converting back to char and appending to message
+		return actual_message
 
 	def reconstructing_secret(self,shares_provided):
 		if(len(shares_provided)<self.threshold):
 			return 'Not enough shares to reconstruct the secret!'
 		x_values = [each_tuple[0] for each_tuple in shares_provided]
 		y_values = [each_tuple[1] for each_tuple in shares_provided]
-		reconstructed_secret = self.lagrange_interpolation(x_values,y_values)
-		return reconstructed_secret
+		reconstructed_int_secret = self.lagrange_interpolation(x_values,y_values)
+		print(reconstructed_int_secret)
+		plaintext_secret = self.plaintext_conversion(reconstructed_int_secret)
+		return plaintext_secret
 
 threshold_shares = 3
 total_shares = 6
 plaintext_secret = input('Secret to be encoded :')
 finding_shares = ShamirSecret(plaintext_secret,3,6)
 shares = finding_shares.compute_shares()
+print(shares)
 recovered_secret = finding_shares.reconstructing_secret(shares[0:3])
+print(recovered_secret)
